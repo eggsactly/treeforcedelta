@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Event Image Upload</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 80px auto;
+            padding: 24px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 24px;
+        }
+
+        form {
+            margin-bottom: 32px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .admin-link {
+            display: block;
+            margin-top: 16px;
+            text-decoration: none;
+            color: #0066cc;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Upload Event Photos</h1>
+
+    <!-- Participant path -->
+    <form action="select-images.php" method="POST">
+        <input
+            type="text"
+            name="code"
+            placeholder="Enter Event Code"
+            required
+        >
+        <button type="submit">Continue</button>
+    </form>
+
+    <!-- Admin path -->
+    <a class="admin-link" href="admin/login.php">
+        Admin Login
+    </a>
+</div>
+
+</body>
+</html>
+
