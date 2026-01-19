@@ -34,4 +34,16 @@ It allows an administrator to define short-lived upload “events” protected b
 
 ## Directory Structure
 
+project/
+├── index.php
+├── select-images.php
+├── upload.php
+├── uploads/
+├── admin/
+│ ├── login.php
+│ ├── panel.php
+│ └── logout.php
+├── deploy.sh
+└── README.md
+
 
