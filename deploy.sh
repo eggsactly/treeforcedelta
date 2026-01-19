@@ -3,7 +3,7 @@
 set -euo pipefail
 
 SOURCE_DIR="$(pwd)"
-TARGET_DIR="/var/log/html"
+TARGET_DIR="/var/www/html"
 
 if [[ ! -d "$SOURCE_DIR" ]]; then
     echo "Source directory not found: $SOURCE_DIR"
