@@ -64,10 +64,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             {
                 echo "<h1>Admin Panel</h1>\n";
                 echo "<h2>Create Event</h2>\n";
-                echo "<p>Event name \"" . $eventname . "\"</p>\n";
-                echo "<p>Event date \"" . $eventdate . "\"</p>\n";
-                echo "<p>Event time \"" . $eventtime . "\"</p>\n";
-                echo "<p>Event duration \"" . $eventduration . "\"</p>\n";
                 
                 $eventstart = date($eventdate . " " . $eventtime . ":0:0");
                 $eventend = date($eventdate . " " . $eventtime . ":0:0", strtotime('+' . $eventtime . ' hours'));
