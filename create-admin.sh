@@ -6,12 +6,13 @@
 readonly RANDOM_GENERATION_FILE=/dev/urandom
 readonly CONNECTION_INFO_FILE=mysqlinfo.php
 readonly PASSWORD_HASHING=mkpasswd
+readonly OVERRIDE_MESSAGE="You may override by running with the -f flag. This will reinitialize the database and wipe all data." 
 # Variables used by script
 FORCE=0
 PASSWORD=""
 USERNAME=""
 
-usage() { echo "Usage: ${0} [-f] -u username -p password" 1>&2; exit 0; }
+usage() { echo "Usage: ${0} -u username [-p password] [-f]" 1>&2; exit 0; }
 
 # Get user input
 while getopts "fhp:u:" o; do
@@ -71,6 +72,8 @@ fi
 
 # Retrieve database name 
 dbname=$(grep dbname ${CONNECTION_INFO_FILE} | cut -f2 -d'"')
+dbusername=$(grep dbusername ${CONNECTION_INFO_FILE} | cut -f2 -d'"')
+dbpassword=$(grep dbpassword ${CONNECTION_INFO_FILE} | cut -f2 -d'"')
 
 # Check to see if we have a database name
 if [ -z ${dbname} ]; then
@@ -80,20 +83,20 @@ if [ -z ${dbname} ]; then
 fi
 
 # Check to see if user already exists 
-USER_EXISTS=$(printf "SELECT * FROM ${dbname}.admins WHERE username = \"${USERNAME}\";\n" | sudo mysql -u root | wc -l)
+USER_EXISTS=$(printf "SELECT * FROM ${dbname}.admins WHERE username = \"${USERNAME}\";\n" | mysql --user=${dbusername} --password=${dbpassword}| wc -l)
 if [ $USER_EXISTS -gt 0 ]; then
     # Exit setup 
     if [ ${FORCE} -eq 0 ]; then
-        printf "%s: Error: Mysql user \"%s\" already exists.\n" ${0} ${MYSQL_USER} >&2
+        printf "%s: Error: Mysql user \"%s\" already exists.\n" ${0} ${USERNAME} >&2
         printf "%s: Info: %s\n" ${0} "${OVERRIDE_MESSAGE}" >&2 
         exit 1
     fi
     # Delete user
-    printf "DELETE FROM ${dbname}.admins WHERE username = \"${USERNAME}\";\n" | sudo mysql -u root 
+    printf "DELETE FROM ${dbname}.admins WHERE username = \"${USERNAME}\";\n" | mysql --user=${dbusername} --password=${dbpassword}
 fi 
 
 # Create the new user 
-printf "INSERT INTO ${dbname}.admins SET username = \"${USERNAME}\", passwordhash = \"${PASSWORDHASH}\";\n" | sudo mysql -u root 
+printf "INSERT INTO ${dbname}.admins SET username = \"${USERNAME}\", passwordhash = \"${PASSWORDHASH}\";\n" | mysql --user=${dbusername} --password=${dbpassword}
 
 printf "User \"%s\" created with password: \"%s\"\n" ${USERNAME} ${PASSWORD} 
 
