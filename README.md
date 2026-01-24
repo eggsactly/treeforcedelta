@@ -46,4 +46,16 @@ project/
 ├── deploy.sh
 └── README.md
 
+# Deploying 
+To deploy this database, clone this repo on the server and run
+```
+sudo ./deploy.sh 
+```
+
+This will populate the site into /var/www/html
+
+To create a new site admin run
+```
+./create-admin.sh -u USERNAME
+```
 
