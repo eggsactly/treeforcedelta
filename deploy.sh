@@ -56,7 +56,7 @@ fi
 # Check if the config file exists 
 if [ -f "${CONNECTION_INFO_FILE}" ]; then
     if [ ${FORCE} -eq 0 ]; then
-        printf "%s: Error: %s Already exists.\n" ${0} ${CONNECTION_INFO_FILE} >&2
+        printf "%s: Error: %s Already exists, generating again would wipe its contents and replace with a new password.\n" ${0} ${CONNECTION_INFO_FILE} >&2
         printf "%s: Info: %s\n" ${0} "${OVERRIDE_MESSAGE}" >&2 
         exit 1
     fi
@@ -85,6 +85,11 @@ if [ $USER_EXISTS -gt 0 ]; then
     # If the user uses the force option, delete the user and continue
     $(printf "DROP USER '${MYSQL_USER}'@'localhost';\n" | sudo mysql -u root)
 fi 
+
+# Delete the database 
+if [ ! ${FORCE} -eq 0 ]; then
+    printf "DROP DATABASE IF EXISTS ${DATABASE_NAME};\n" | sudo mysql -u root 
+fi
 
 # Configure the mysql helper script
 cp ${CONFIG_SCRIPT} ${CONFIG_SCRIPT}.temp

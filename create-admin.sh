@@ -60,7 +60,7 @@ if [ -z ${PASSWORD} ]; then
 fi
 
 # Hash the password 
-PASSWORDHASH=$({PASSWORD_HASHING} -m sha512crypt -s ${PASSWORD})
+PASSWORDHASH=$(${PASSWORD_HASHING} -m sha512crypt -s ${PASSWORD})
 
 # See if connection file exists  
 if [ ! -f "${CONNECTION_INFO_FILE}" ]; then
@@ -73,14 +73,14 @@ fi
 dbname=$(grep dbname ${CONNECTION_INFO_FILE} | cut -f2 -d'"')
 
 # Check to see if we have a database name
-if [ ! -z ${dbname} ]; then
-    printf "%s: Error: no database name exists.\n" ${0} ${RANDOM_GENERATION_FILE} >&2
+if [ -z ${dbname} ]; then
+    printf "%s: Error: no database name exists.\n" ${0} >&2
     printf "%s: Info: Please run deploy.sh\n" ${0} >&2
     exit 1
 fi
 
 # Check to see if user already exists 
-USER_EXISTS=$(printf "SELECT * FROM ${dbname}.admins WHERE username = ${USERNAME};\n" | sudo mysql -u root | wc -l)
+USER_EXISTS=$(printf "SELECT * FROM ${dbname}.admins WHERE username = \"${USERNAME}\";\n" | sudo mysql -u root | wc -l)
 if [ $USER_EXISTS -gt 0 ]; then
     # Exit setup 
     if [ ${FORCE} -eq 0 ]; then
@@ -89,11 +89,11 @@ if [ $USER_EXISTS -gt 0 ]; then
         exit 1
     fi
     # Delete user
-    printf "DELETE FROM ${dbname}.admins WHERE username = ${USERNAME};\n" | sudo mysql -u root 
+    printf "DELETE FROM ${dbname}.admins WHERE username = \"${USERNAME}\";\n" | sudo mysql -u root 
 fi 
 
 # Create the new user 
-printf "INSERT INTO ${dbname}.admins SET username = ${USERNAME}, passwordhash = ${PASSWORDHASH};\n" | sudo mysql -u root 
+printf "INSERT INTO ${dbname}.admins SET username = \"${USERNAME}\", passwordhash = \"${PASSWORDHASH}\";\n" | sudo mysql -u root 
 
 printf "User \"%s\" created with password: \"%s\"\n" ${USERNAME} ${PASSWORD} 
 
