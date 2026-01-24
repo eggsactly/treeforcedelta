@@ -11,6 +11,8 @@
 include "../code_generator.php";
 include "../mysqlinfo.php";
 
+date_default_timezone_set('America/Phoenix');
+
 class TableRows extends RecursiveIteratorIterator {
   function __construct($it) {
     parent::__construct($it, self::LEAVES_ONLY);
@@ -66,20 +68,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo "<h2>Create Event</h2>\n";
                 
                 $eventstart = date($eventdate . " " . $eventtime . ":0:0");
-                $eventend = date($eventdate . " " . $eventtime . ":0:0", strtotime('+' . $eventtime . ' hours'));
+                
+                $currentDateTime = date("Y-m-d H:i:s");
+
+                $eventend = new DateTime($eventstart);
+                $eventend->add(new DateInterval('PT' . $eventduration . 'H'));
+                
+                // Debugging print statements
+                // print "<p>eventstart: " . $eventstart . "</p>";
+                // print "<p>eventduration: " . $eventduration . "</p>";
+                // print "<p>eventend: " . $eventend->format("Y-m-d H:i:s") . "</p>";
                 
                 $currentDateTime = date("Y-m-d H:i:s");
                 
-                if ($currentDateTime > $eventend)
+                if ($currentDateTime > $eventend->format("Y-m-d H:i:s"))
                 {
-                    echo "<p>Error, event ends in the past. Event ends at: $eventend. Current date and time is: $currentDateTime.</p>\n";
+                    echo "<p>Error, event ends in the past. Event ends at: " . $eventend->format("Y-m-d H:i:s") . ". Current date and time is: $currentDateTime.</p>\n";
                 }
                 else
                 {
                     $eventCode = generateEventCode();
                     
                     $sql = "INSERT INTO events (name, code, start_time, end_time, created_at)
-                      VALUES ('$eventname', '$eventCode', '$eventstart', '$eventend', '$currentDateTime')";
+                      VALUES ('$eventname', '$eventCode', '$eventstart', '" . $eventend->format("Y-m-d H:i:s") . "', '$currentDateTime')";
                       
                     $conn->exec($sql);
                     

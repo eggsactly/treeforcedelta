@@ -11,6 +11,8 @@
 include "../code_generator.php";
 include "../mysqlinfo.php";
 
+date_default_timezone_set('America/Phoenix');
+
 class TableRows extends RecursiveIteratorIterator {
   function __construct($it) {
     parent::__construct($it, self::LEAVES_ONLY);
@@ -28,20 +30,29 @@ class TableRows extends RecursiveIteratorIterator {
 }
 
 class TableRowsEvents extends RecursiveIteratorIterator {
+  public $lastValue = "";
+  
   function __construct($it) {
     parent::__construct($it, self::LEAVES_ONLY);
   }
-
+  
   function current() {
-    return "<td style='width:150px;border:1px solid black;'>" . parent::current(). "</td>";
+    if (parent::current() != $lastValue){
+      return "        <td style='width:150px;border:1px solid black;'>" . parent::current(). "</td>\n";
+    }
+    else
+    {
+      return "";
+    }
+    $lastValue = parent::current();
   }
 
   function beginChildren() {
-    echo "<tr>";
+    echo "    <tr>\n";
   }
 
   function endChildren() {
-    echo "</tr>" . "\n";
+    echo "    </tr>" . "\n";
   }
 }
 
@@ -92,32 +103,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <button type=\"submit\">Create New Event</button>
 </form>";
 
+               echo "<p>Time in Tucson: " . date('Y-m-d H:i:s') . "</p>\n";
                echo "<h2>Upcoming Events</h2>\n";
                
-               $stmt = $conn->prepare("SELECT id, start_time, end_time, code FROM events WHERE end_time > '" . date('Y-m-d H:i:s') . "'");
+               $stmt = $conn->prepare("SELECT id, name, start_time, end_time, code FROM events WHERE start_time > '" . date('Y-m-d H:i:s') . "'");
                $stmt->execute();
-               
-               $count = 0;
-               foreach(new TableRowsEvents(new RecursiveArrayIterator($stmt->fetchAll())) as $k=>$v) {
-                   echo $v;
-                   $count = $count + 1;
+               $result = $stmt->fetchAll();
+               $index = 0;
+               echo "<table style='border: solid 1px black;'>";
+               echo "<tr><th>ID</th><th>Name</th><th>Start Time</th><th>End Time</th><th>Access Code</th></tr>";
+               while($index < count($result))
+               {
+                   print "    <tr>\n";
+                   print "        <td style='width:150px;border:1px solid black;'>" . $result[$index]['id'] . "</td>\n";
+                   print "        <td style='width:150px;border:1px solid black;'>" . $result[$index]['name'] . "</td>\n";
+                   print "        <td style='width:150px;border:1px solid black;'>" . $result[$index]['start_time'] . "</td>\n";
+                   print "        <td style='width:150px;border:1px solid black;'>" . $result[$index]['end_time'] . "</td>\n";
+                   print "        <td style='width:150px;border:1px solid black;'>" . $result[$index]['code'] . "</td>\n";
+                   print "    </tr>\n";
+                   $index = $index + 1;
                }
-               if($count == 0)
+               echo "</table>";
+               
+               if($index == 0)
                {
                    echo "<p>No upcomming events scheduled.</p>";
                }
                
                echo "<h2>Past and Current Events</h2>\n";
                
-               $stmt = $conn->prepare("SELECT id, start_time, end_time, code FROM events WHERE start_time < '" . date('Y-m-d H:i:s') . "'");
-               $stmt->execute();
+               $stmt2 = $conn->prepare("SELECT id, name, start_time, end_time, code FROM events WHERE start_time < '" . date('Y-m-d H:i:s') . "'");
+               $stmt2->execute();
                
-               $count = 0;
-               foreach(new TableRowsEvents(new RecursiveArrayIterator($stmt->fetchAll())) as $k=>$v) {
-                   echo $v;
-                   $count = $count + 1;
+               
+               $result2 = $stmt2->fetchAll();
+               
+               $index = 0;
+               
+               echo "<table style='border: solid 1px black;'>";
+               echo "<tr><th>ID</th><th>Name</th><th>Start Time</th><th>End Time</th><th>Access Code</th></tr>";
+               while($index < count($result2))
+               {
+                   print "    <tr>\n";
+                   print "        <td style='width:150px;border:1px solid black;'>" . $result2[$index]['id'] . "</td>\n";
+                   print "        <td style='width:150px;border:1px solid black;'>" . $result2[$index]['name'] . "</td>\n";
+                   print "        <td style='width:150px;border:1px solid black;'>" . $result2[$index]['start_time'] . "</td>\n";
+                   print "        <td style='width:150px;border:1px solid black;'>" . $result2[$index]['end_time'] . "</td>\n";
+                   print "        <td style='width:150px;border:1px solid black;'>" . $result2[$index]['code'] . "</td>\n";
+                   print "    </tr>\n";
+                   $index = $index + 1;
                }
-               if($count == 0)
+               echo "</table>";
+               
+               if($index == 0)
                {
                    echo "<p>No past events.</p>";
                }
