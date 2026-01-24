@@ -27,24 +27,6 @@ class TableRows extends RecursiveIteratorIterator {
   }
 }
 
-class TableRowsEvents extends RecursiveIteratorIterator {
-  function __construct($it) {
-    parent::__construct($it, self::LEAVES_ONLY);
-  }
-
-  function current() {
-    return "<td style='width:150px;border:1px solid black;'>" . parent::current(). "</td>";
-  }
-
-  function beginChildren() {
-    echo "<tr>";
-  }
-
-  function endChildren() {
-    echo "</tr>" . "\n";
-  }
-}
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Check if the name and email fields are set
     if (isset($_POST['username']) && isset($_POST['password'])) {
@@ -77,55 +59,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if($count > 0 and password_verify($password, $passhash))
             {
                 echo "<h1>Admin Panel</h1>\n";
-                
-                echo "<h2>Change User Password</h2>
-<form method=\"POST\" action=\"update-password.php\">
+                echo "<h2>Change Password</h2>\n";
+                echo "<p>Password must be 8 characters or longer.</p>
+<form method=\"POST\" action=\"update-password-finish.php\">
     <input type=\"hidden\" name=\"username\" value=\"" . $username . "\" required>
     <input type=\"hidden\" name=\"password\" value=\"" . $password . "\" required>
-    <button type=\"submit\">Change My Password</button>
+    <label>New Password</label><br>
+    <input type=\"password\" name=\"newpassword1\" required><br><br>
+    <label>Repeat New Password</label><br>
+    <input type=\"password\" name=\"newpassword2\" required><br><br>
+    <button type=\"submit\">Change Password</button>
 </form>";
-                
-                echo "<h2>Create New Event</h2>
-<form method=\"POST\" action=\"create-event.php\">
+                echo "<h2>Go Back?</h2>
+<form method=\"POST\" action=\"panel.php\">
     <input type=\"hidden\" name=\"username\" value=\"" . $username . "\" required>
     <input type=\"hidden\" name=\"password\" value=\"" . $password . "\" required>
-    <button type=\"submit\">Create New Event</button>
+    <button type=\"submit\">Admin Panel</button>
 </form>";
-
-               echo "<h2>Upcoming Events</h2>\n";
-               
-               $stmt = $conn->prepare("SELECT id, start_time, end_time, code FROM events WHERE end_time > '" . date('Y-m-d H:i:s') . "'");
-               $stmt->execute();
-               
-               $count = 0;
-               foreach(new TableRowsEvents(new RecursiveArrayIterator($stmt->fetchAll())) as $k=>$v) {
-                   echo $v;
-                   $count = $count + 1;
-               }
-               if($count == 0)
-               {
-                   echo "<p>No upcomming events scheduled.</p>";
-               }
-               
-               echo "<h2>Past and Current Events</h2>\n";
-               
-               $stmt = $conn->prepare("SELECT id, start_time, end_time, code FROM events WHERE start_time < '" . date('Y-m-d H:i:s') . "'");
-               $stmt->execute();
-               
-               $count = 0;
-               foreach(new TableRowsEvents(new RecursiveArrayIterator($stmt->fetchAll())) as $k=>$v) {
-                   echo $v;
-                   $count = $count + 1;
-               }
-               if($count == 0)
-               {
-                   echo "<p>No past events.</p>";
-               }
-               
-               echo "<h2>Log Out</h2>
-<form method=\"POST\" action=\"../index.html\">
-    <button type=\"submit\">Log Out</button>
-</form>";
+                
             }
             else
             {
@@ -133,6 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo '<p><a href="login.html">Login</a></p>';
             }
             
+
             // Close connection
             $conn = null;
         }
