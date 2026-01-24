@@ -55,8 +55,7 @@ fi
 # Check to see if user already exists 
 USER_EXISTS=$(printf "SELECT * FROM ${dbname}.admins WHERE username = \"${USERNAME}\";\n" | mysql --user=${dbusername} --password=${dbpassword} | wc -l)
 if [ ! $USER_EXISTS -gt 0 ]; then
-    printf "%s: Error: Mysql user \"%s\" does not exist.\n" ${0} ${MYSQL_USER} >&2
-    printf "%s: Info: %s\n" ${0} "${OVERRIDE_MESSAGE}" >&2 
+    printf "%s: Error: Mysql user \"%s\" does not exist.\n" ${0} ${USERNAME} >&2
     exit 1
 fi 
 
