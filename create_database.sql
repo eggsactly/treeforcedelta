@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS uploaded_images (
     upload_date DATETIME NOT NULL,
     latitude DECIMAL(10, 8),
     longitude DECIMAL(11, 8),
+    treetype VARCHAR(255),
     CONSTRAINT fk_uploaded_images_event
         FOREIGN KEY (event_id)
         REFERENCES events(id)
