@@ -49,9 +49,16 @@ if [[ ! -d "$SOURCE_DIR" ]]; then
 fi
 
 if [[ ! -d "$TARGET_DIR" ]]; then
-    echo "Target directory not found: $TARGET_DIR"
-    exit 1
+    if [ ${FORCE} -eq 0 ]; then
+        printf "%s: Error: Target directory not found: %s.\n" ${0} ${TARGET_DIR} >&2
+        printf "%s: Info: %s\n" ${0} "${OVERRIDE_MESSAGE}" >&2 
+        exit 1
+    else
+        mkdir -p ${TARGET_DIR} 
+    fi
 fi
+
+
 
 # Check if the config file exists 
 if [ -f "${CONNECTION_INFO_FILE}" ]; then
@@ -115,13 +122,7 @@ fi
 
 echo "Deploying to $TARGET_DIR"
 
-rsync -av --delete \
-    --include='*/' \
-    --include='*.php' \
-    --include='*.html' \
-    --include='*.css' \
-    --exclude='*' \
-    "$SOURCE_DIR" "$TARGET_DIR"
+find . -name "*.php" -o -name "*.html"  -o -name "*.css" | cpio -updm ${TARGET_DIR}
 
 echo "Deployment complete."
 
