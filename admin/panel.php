@@ -97,6 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </form>";
                 
                 echo "<h2>Create New Event</h2>
+                <p>Users can only submit photos with an event code within the start and end times of an event.</p>
 <form method=\"POST\" action=\"create-event.php\">
     <input type=\"hidden\" name=\"username\" value=\"" . $username . "\" required>
     <input type=\"hidden\" name=\"password\" value=\"" . $password . "\" required>
@@ -141,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                $index = 0;
                
                echo "<table style='border: solid 1px black;'>";
-               echo "<tr><th>ID</th><th>Name</th><th>Start Time</th><th>End Time</th><th>Access Code</th></tr>";
+               echo "<tr><th>ID</th><th>Name</th><th>Start Time</th><th>End Time</th><th>Access Code</th><th>Image List</th></tr>";
                while($index < count($result2))
                {
                    print "    <tr>\n";
@@ -150,6 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                    print "        <td style='width:150px;border:1px solid black;'>" . $result2[$index]['start_time'] . "</td>\n";
                    print "        <td style='width:150px;border:1px solid black;'>" . $result2[$index]['end_time'] . "</td>\n";
                    print "        <td style='width:150px;border:1px solid black;'>" . $result2[$index]['code'] . "</td>\n";
+                   print "        <td style='width:150px;border:1px solid black;'><form method=\"POST\" action=\"view-event.php\"><input type=\"hidden\" name=\"username\" value=\"" . $username . "\" required /><input type=\"hidden\" name=\"password\" value=\"" . $password . "\" required /><input type=\"hidden\" name=\"eventid\" value=\"" . $result2[$index]['id'] . "\" /><button type=\"submit\">View Image List</button></form></td>\n";
                    print "    </tr>\n";
                    $index = $index + 1;
                }

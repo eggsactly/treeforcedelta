@@ -123,6 +123,9 @@ fi
 echo "Deploying to $TARGET_DIR"
 
 find . -name "*.php" -o -name "*.html"  -o -name "*.css" | cpio -updm ${TARGET_DIR}
+mkdir -p ${TARGET_DIR}/uploadedImages
+chown -R www-data:www-data ${TARGET_DIR}/uploadedImages
+chmod 755 ${TARGET_DIR}/uploadedImages
 
 echo "Deployment complete."
 

@@ -24,13 +24,14 @@
         }
 
         h1 {
-            margin-bottom: 24px;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
         }
-
+        
         form {
             margin-bottom: 32px;
         }
-
+        
         input[type="text"] {
             width: 100%;
             padding: 12px;
@@ -40,13 +41,27 @@
             max-width: 376px;
         }
 
-        button {
+        input[type="file"] {
             width: 100%;
-            padding: 12px;
+            margin-bottom: 16px;
             font-size: 1rem;
-            cursor: pointer;
         }
 
+        button {
+            width: 100%;
+            padding: 14px;
+            font-size: 1rem;
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            background: #0066cc;
+            color: white;
+        }
+
+        button:active {
+            background: #004c99;
+        }
+        
         .admin-link {
             display: block;
             margin-top: 16px;
@@ -89,11 +104,13 @@ if ($codelength == 8)
         if(count($result) > 0)
         {
             $eventID = $result[0]["id"];
-            print "    <form action=\"upload.php\" method=\"POST\" enctype=\"multipart/form-data\">
+            print "<h1>Upload Tree Photos</h1>
+    <p>Please select images from your device to upload.</p>
+        <form action=\"upload.php\" method=\"POST\" enctype=\"multipart/form-data\">
         <input 
             type=\"file\" 
-            name=\"image\" 
-            accept=\"image/*\" 
+            name=\"images[]\" 
+            accept=\"image/\" 
             capture=\"environment\"
             required
         />
@@ -106,8 +123,8 @@ if ($codelength == 8)
         {
             print "
     <h1>Upload Tree Photos</h1>
-    <p>Invalid event code, code may be mistyped, or the event may either have not started, or may have ended</p>
-    <p>please try again.</p>
+    <p>Invalid event code, code may be mistyped, the event may not have not started, or it may have ended.</p>
+    <p>Please try again.</p>
 
     <!-- Participant path -->
     <form action=\"select-images.php\" method=\"POST\">
