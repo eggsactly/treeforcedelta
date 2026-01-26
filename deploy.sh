@@ -139,3 +139,9 @@ sudo /etc/init.d/apache2 restart
 
 echo "Deployment complete."
 
+ismbstring_installed=$(dpkg -l | grep php-mbstring | wc -l)
+
+if [ $ismbstring_installed -eq 0 ]; then
+    printf "php-mbstring not installed. Not having this prevents transfering images to the digital ocean bucket. Please install it, then re-start apache.\n"
+fi 
+
