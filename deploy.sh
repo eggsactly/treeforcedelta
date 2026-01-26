@@ -18,12 +18,13 @@ TARGET_DIR="/var/www/html"
 # Variables used by script
 FORCE=0
 PASSWORD=""
+MYSQL_PASS=""
 
 # Functions 
-usage() { echo "Usage: ${0} [-f] [-o target-dir] [-p password]" 1>&2; exit 0; }
+usage() { echo "Usage: ${0} -m ADMIN_MYSQL_PASSWORD [-f] [-o target-dir] [-p password]" 1>&2; exit 0; }
 
 # Get user input
-while getopts "fhp:o:" o; do
+while getopts "fhp:o:m:" o; do
     case "${o}" in
         f)
             FORCE=1
@@ -37,12 +38,20 @@ while getopts "fhp:o:" o; do
         o)
             TARGET_DIR=$OPTARG
             ;;
+        m)
+            MYSQL_PASS=$OPTARG
+            ;;
         *)
             usage
             ;;
     esac
 done
 shift $((OPTIND-1))
+
+if [ -z ${MYSQL_PASS} ]; then
+    echo "Please use the -m flag to provide the admin users password to configure the database."
+    exit 1
+fi
 
 if [[ ! -d "$SOURCE_DIR" ]]; then
     echo "Source directory not found: $SOURCE_DIR"
@@ -82,7 +91,7 @@ if [ -z ${PASSWORD} ]; then
 fi
 
 # See if mysql user already exists 
-USER_EXISTS=$(printf "SELECT user FROM mysql.user;\n" | sudo mysql -u root | grep ${MYSQL_USER} | wc -l)
+USER_EXISTS=$(printf "SELECT user FROM mysql.user;\n" | sudo mysql -u root -p${MYSQL_PASS} | grep ${MYSQL_USER} | wc -l)
 if [ $USER_EXISTS -gt 0 ]; then
     # Exit setup 
     if [ ${FORCE} -eq 0 ]; then
@@ -91,12 +100,12 @@ if [ $USER_EXISTS -gt 0 ]; then
         exit 1
     fi
     # If the user uses the force option, delete the user and continue
-    $(printf "DROP USER '${MYSQL_USER}'@'localhost';\n" | sudo mysql -u root)
+    $(printf "DROP USER '${MYSQL_USER}'@'localhost';\n" | sudo mysql -u root -p${MYSQL_PASS})
 fi 
 
 # Delete the database 
 if [ ! ${FORCE} -eq 0 ]; then
-    printf "DROP DATABASE IF EXISTS ${DATABASE_NAME};\n" | sudo mysql -u root 
+    printf "DROP DATABASE IF EXISTS ${DATABASE_NAME};\n" | sudo mysql -u root -p${MYSQL_PASS}
 fi
 
 # Configure the mysql helper script
@@ -106,7 +115,7 @@ sed -i -e "s/:database/${DATABASE_NAME}/g" ${CONFIG_SCRIPT}.temp
 $(printf "source ${CONFIG_SCRIPT}.temp;\n\
 USE ${DATABASE_NAME};\n\
 CREATE USER '${MYSQL_USER}'@'localhost' IDENTIFIED BY '${PASSWORD}';\n\
-GRANT ALL PRIVILEGES ON ${DATABASE_NAME}.* TO '${MYSQL_USER}'@'localhost' WITH GRANT OPTION;\n" | sudo mysql -u root)
+GRANT ALL PRIVILEGES ON ${DATABASE_NAME}.* TO '${MYSQL_USER}'@'localhost' WITH GRANT OPTION;\n" | sudo mysql -u root -p${MYSQL_PASS})
 rm ${CONFIG_SCRIPT}.temp
 
 # Write the config file 
@@ -132,7 +141,14 @@ chmod 755 ${TARGET_DIR}/uploadedImages
 wget $AWS_SDK -P $TARGET_DIR
 SDK_NAME=$(basename ${AWS_SDK})
 mkdir -p $TARGET_DIR/aws
-unzip $TARGET_DIR/$SDK_NAME -d $TARGET_DIR/aws
+
+isZipInstalled=$(which unzip | wc -l)
+if [ $isZipInstalled -gt 0 ]; then
+    unzip $TARGET_DIR/$SDK_NAME -d $TARGET_DIR/aws
+else
+    printf "unzip not installed, plese install it then rerun this script."
+fi 
+
 
 # Restart Apache2 server 
 sudo /etc/init.d/apache2 restart
