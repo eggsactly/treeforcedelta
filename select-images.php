@@ -109,7 +109,6 @@ if ($codelength == 8)
         <input 
             type=\"file\" 
             name=\"images[]\" 
-            capture=\"environment\"
             required multiple
         />
         <input type=\"hidden\" name=\"code\" value=\"" . $code . "\" />
