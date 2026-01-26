@@ -145,6 +145,38 @@ function getImageGpsCoordinates(string $imagePath): ?array
     ];
 }
 
+function codeToMessage($code)
+{
+    switch ($code) {
+        case UPLOAD_ERR_INI_SIZE:
+            $message = "The uploaded file exceeds the upload_max_filesize directive in php.ini";
+            break;
+        case UPLOAD_ERR_FORM_SIZE:
+            $message = "The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form";
+            break;
+        case UPLOAD_ERR_PARTIAL:
+            $message = "The uploaded file was only partially uploaded";
+            break;
+        case UPLOAD_ERR_NO_FILE:
+            $message = "No file was uploaded";
+            break;
+        case UPLOAD_ERR_NO_TMP_DIR:
+            $message = "Missing a temporary folder";
+            break;
+        case UPLOAD_ERR_CANT_WRITE:
+            $message = "Failed to write file to disk";
+            break;
+        case UPLOAD_ERR_EXTENSION:
+            $message = "File upload stopped by extension";
+            break;
+
+        default:
+            $message = "Unknown upload error";
+            break;
+    }
+    return $message;
+}
+
 include "mysqlinfo.php";
 
 date_default_timezone_set('America/Phoenix');
@@ -177,8 +209,8 @@ if ($codelength == 8)
             
             // ---- Upload configuration ----
             $uploadDir = __DIR__ . '/uploadedImages/';
-            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-            $maxFileSize = 5 * 1024 * 1024; // 5MB
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', ', image/heic'];
+            $maxFileSize = 10 * 1024 * 1024; // 10MB
 
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0755, true);
@@ -192,7 +224,7 @@ if ($codelength == 8)
             foreach ($_FILES['images']['tmp_name'] as $index => $tmpName) {
 
                 if ($_FILES['images']['error'][$index] !== UPLOAD_ERR_OK) {
-                    $errors[] = "Upload error on file #" . ($index + 1);
+                    $errors[] = "Upload error on file #" . ($index + 1) . ", error code: " . $_FILES['images']['error'][$index] . ": " . codeToMessage($_FILES['images']['error'][$index]);
                     continue;
                 }
 
@@ -226,12 +258,26 @@ if ($codelength == 8)
                     $sql = "INSERT INTO uploaded_images (event_id, filename, upload_date, latitude, longitude)
                       VALUES ('$eventID', '$filename', '$currentDateTime', '". $coordinates['latitude'] ."', '" . $coordinates['longitude'] . "')";
                 }      
+                
                 $conn->exec($sql);
 
                 $uploaded++;
             }
             print "<h1>Upload Tree Photos</h1>\n";
+            
             print "<p>" . $uploaded . " images uploaded. Thank you.</p>\n";
+
+            $index = 0;
+            
+            if ( count($errors) > 0 )
+            {
+                print "<p>Errors during upload:</p>";
+            }
+            while($index < count($errors))
+            {
+                print "<p>" . $errors[$index] . "</p>";
+                $index = $index + 1;
+            }
 
             print "<form action=\"select-images.php\" method=\"POST\" enctype=\"multipart/form-data\">
         <input type=\"hidden\" name=\"code\" value=\"" . $code . "\" />

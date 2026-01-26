@@ -80,7 +80,6 @@ include "mysqlinfo.php";
 date_default_timezone_set('America/Phoenix');
 
 $code = strtoupper(trim($_POST['code']));
-$id = strtoupper(trim($_POST['id']));
 $codelength = strlen($code);
 
 if ($codelength == 8)
@@ -112,7 +111,8 @@ if ($codelength == 8)
             name=\"images[]\" 
             accept=\"image/\" 
             capture=\"environment\"
-            required
+            accept=\"image/jpeg, image/png, image/gif, image/webp, image/heic\"
+            required multiple
         />
         <input type=\"hidden\" name=\"code\" value=\"" . $code . "\" />
         <input type=\"hidden\" name=\"id\" value=\"" . $eventID . "\" />

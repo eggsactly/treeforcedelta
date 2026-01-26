@@ -111,6 +111,9 @@ rm ${CONFIG_SCRIPT}.temp
 # Write the config file 
 printf "<?php\n// Database configuration\n\$host = \"localhost\";\n\$dbname = \"treeforcedelta_db\";\n\$dbusername = \"${MYSQL_USER}\";\n\$dbpassword = \"${PASSWORD}\";\n?>\n" > ${CONNECTION_INFO_FILE}
 
+# Edit php.ini to raise the upload file limit to 10M 
+sudo find "/etc/php/" -name "php.ini" -exec sed -i -e "s/upload_max_filesize.*/upload_max_filesize = 10M/" {} \;
+
 # Restart Apache2 server 
 sudo /etc/init.d/apache2 restart
 
@@ -126,6 +129,8 @@ find . -name "*.php" -o -name "*.html"  -o -name "*.css" | cpio -updm ${TARGET_D
 mkdir -p ${TARGET_DIR}/uploadedImages
 chown -R www-data:www-data ${TARGET_DIR}/uploadedImages
 chmod 755 ${TARGET_DIR}/uploadedImages
+
+
 
 echo "Deployment complete."
 
