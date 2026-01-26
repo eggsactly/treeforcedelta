@@ -75,6 +75,11 @@
 
 <?php
 
+require 'aws/aws-autoloader.php';
+
+use Aws\S3\S3Client;
+use Aws\S3\Exception\S3Exception;
+
 function exifFractionToFloat($value): ?float
 {
     if (is_string($value) && strpos($value, '/') !== false) {
@@ -178,6 +183,7 @@ function codeToMessage($code)
 }
 
 include "mysqlinfo.php";
+include "spaces-key.php";
 
 date_default_timezone_set('America/Phoenix');
 
@@ -220,6 +226,21 @@ if ($codelength == 8)
             $uploaded = 0;
             $errors = [];
 
+            $s3 = NULL;
+            $canLoadAWS = isset($access_key) and extension_loaded('mbstring');
+            if ($canLoadAWS)
+            {
+                $s3 = new Aws\S3\S3Client([
+                    'version'     => 'latest',
+                    'region'      => 'sfo3',
+                    'endpoint'    => 'https://sfo3.digitaloceanspaces.com',
+                    'credentials' => [
+                        'key'    => $access_key,
+                        'secret' => $secret_key,
+                    ],
+                ]);
+            }
+
             // ---- Process each image ----
             foreach ($_FILES['images']['tmp_name'] as $index => $tmpName) {
 
@@ -248,6 +269,28 @@ if ($codelength == 8)
                     continue;
                 }
                 
+                if($s3 != NULL)
+                {
+                    // Transfer file to the digital ocean bucket 
+                    try {
+                        $result = $s3->putObject([
+                            'Bucket'     => 'tcb-drone',
+                            'Key'        => 'treeforcedelta-uploads/' . $filename,
+                            'SourceFile' => $destination,
+                            'ACL'        => 'public-read', 
+                            'ContentType'=> mime_content_type($destination),
+                        ]);
+
+                        # Once the file is transfered to the DO bucket, delete it
+                        unlink($destination);
+
+                    } catch (AwsException $e2) {
+                        throw new RuntimeException(
+                            'Upload failed: ' . $e2->getAwsErrorMessage()
+                        );
+                        print "<p>Failed to transfer upload to Digital Ocean Bucket: " . $e2->getAwsErrorMessage() . "</p>";
+                    }
+                }
                 $coordinates = getImageGpsCoordinates($destination);
 
                 $sql = "INSERT INTO uploaded_images (event_id, filename, upload_date)

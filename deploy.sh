@@ -9,6 +9,7 @@ readonly RANDOM_GENERATION_FILE=/dev/urandom
 readonly DATABASE_NAME=treeforcedelta_db
 readonly CONFIG_SCRIPT=create_database.sql
 readonly CONNECTION_INFO_FILE=mysqlinfo.php
+readonly AWS_SDK=https://docs.aws.amazon.com/aws-sdk-php/v3/download/aws.zip
 
 SOURCE_DIR="$(pwd)"
 TARGET_DIR="/var/www/html"
@@ -114,9 +115,6 @@ printf "<?php\n// Database configuration\n\$host = \"localhost\";\n\$dbname = \"
 # Edit php.ini to raise the upload file limit to 10M 
 sudo find "/etc/php/" -name "php.ini" -exec sed -i -e "s/upload_max_filesize.*/upload_max_filesize = 10M/" {} \;
 
-# Restart Apache2 server 
-sudo /etc/init.d/apache2 restart
-
 # Check if the config file exists 
 if [ ! -f "${CONNECTION_INFO_FILE}" ]; then
     printf "%s: Error: %s not wirtten. Please check permissions and run this script again.\n" ${0} ${CONNECTION_INFO_FILE} >&2
@@ -130,7 +128,14 @@ mkdir -p ${TARGET_DIR}/uploadedImages
 chown -R www-data:www-data ${TARGET_DIR}/uploadedImages
 chmod 755 ${TARGET_DIR}/uploadedImages
 
+# Download the AWS SDK 
+wget $AWS_SDK -P $TARGET_DIR
+SDK_NAME=$(basename ${AWS_SDK})
+mkdir -p $TARGET_DIR/aws
+unzip $TARGET_DIR/$SDK_NAME -d $TARGET_DIR/aws
 
+# Restart Apache2 server 
+sudo /etc/init.d/apache2 restart
 
 echo "Deployment complete."
 
