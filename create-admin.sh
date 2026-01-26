@@ -39,7 +39,7 @@ shift $((OPTIND-1))
 # Check if password hashing command exists 
 PASSWORD_HASHING_Exists=$(which ${PASSWORD_HASHING} | wc -l)
 if [ ${PASSWORD_HASHING_Exists} -eq 0 ]; then
-    printf "%s: Error: %s not installed, please install before running.\n" ${0} ${PASSWORD_HASHING_Exists} >&2
+    printf "%s: Error: %s not installed, please install before running.\n" ${0} ${PASSWORD_HASHING} >&2
     exit 1
 fi 
 
