@@ -269,6 +269,8 @@ if ($codelength == 8)
                     continue;
                 }
                 
+                $coordinates = getImageGpsCoordinates($destination);
+                
                 if($s3 != NULL)
                 {
                     // Transfer file to the digital ocean bucket 
@@ -291,7 +293,6 @@ if ($codelength == 8)
                         print "<p>Failed to transfer upload to Digital Ocean Bucket: " . $e2->getAwsErrorMessage() . "</p>";
                     }
                 }
-                $coordinates = getImageGpsCoordinates($destination);
 
                 $sql = "INSERT INTO uploaded_images (event_id, filename, upload_date)
                       VALUES ('$eventID', '$filename', '$currentDateTime')";
