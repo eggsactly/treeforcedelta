@@ -68,6 +68,37 @@
             text-decoration: none;
             color: #0066cc;
         }
+            .file-status {
+      margin-top: 10px;
+    }
+
+    .file {
+      padding: 6px;
+      margin-bottom: 5px;
+      border-radius: 4px;
+    }
+
+    .success {
+      background-color: #e6ffed;
+      color: #0a6b2d;
+    }
+
+    .error {
+      background-color: #ffe6e6;
+      color: #8a0000;
+    }
+
+    button.retry {
+      margin-left: 10px;
+    }
+    .progress-container {
+      margin-top: 5px;
+    }
+
+    progress {
+      width: 100%;
+      height: 14px;
+    }
     </style>
 </head>
 <body>
@@ -105,16 +136,16 @@ if ($codelength == 8)
             $eventID = $result[0]["id"];
             print "<h1>Upload Tree Photos</h1>
     <p>Please select images from your device to upload.</p>
-        <form action=\"upload.php\" method=\"POST\" enctype=\"multipart/form-data\">
         <input 
             type=\"file\" 
-            name=\"images[]\" 
+            name=\"images\" 
+            id=\"photoInput\"
             required multiple
         />
-        <input type=\"hidden\" name=\"code\" value=\"" . $code . "\" />
-        <input type=\"hidden\" name=\"id\" value=\"" . $eventID . "\" />
-        <button type=\"submit\">Upload Images</button>
-        </form>";
+        <input type=\"hidden\" name=\"code\" id=\"EventCodeID\" value=\"" . $code . "\" />
+        <input type=\"hidden\" name=\"id\" id=\"EventID\" value=\"" . $eventID . "\" />
+        <button type=\"submit\" id=\"uploadBtn\">Upload Images</button>
+        <div id=\"status\" class=\"file-status\"></div>";
         }
         else
         {
@@ -179,6 +210,120 @@ else
     
 ?>
 </div>
+
+<script>
+const uploadBtn = document.getElementById('uploadBtn');
+const photoInput = document.getElementById('photoInput');
+const statusDiv = document.getElementById('status');
+
+let pendingUploads = 0;
+let successfulUploads = 0;
+let totalUploads = 0;
+
+uploadBtn.addEventListener('click', () => {
+  const files = photoInput.files;
+  statusDiv.innerHTML = '';
+
+  if (!files.length) {
+    alert('Please select at least one photo.');
+    return;
+  }
+
+  totalUploads = files.length;
+  pendingUploads = files.length;
+  successfulUploads = 0;
+
+  [...files].forEach(file => uploadFile(file));
+});
+
+function maybeResetFileInput() {
+  photoInput.value = '';
+}
+
+function uploadFile(file) {
+  const formData = new FormData();
+  eventCodeValue = document.getElementById("EventCodeID").value;
+  eventIDValue = document.getElementById("EventID").value;
+  formData.append('images', file);
+  formData.append('code', eventCodeValue);
+  formData.append('id', eventIDValue);
+
+  const statusEl = document.createElement('div');
+  statusEl.className = 'file';
+  statusEl.textContent = file.name;
+
+  const progressContainer = document.createElement('div');
+  progressContainer.className = 'progress-container';
+
+  const progressBar = document.createElement('progress');
+  progressBar.max = 100;
+  progressBar.value = 0;
+
+  progressContainer.appendChild(progressBar);
+  statusEl.appendChild(progressContainer);
+  statusDiv.appendChild(statusEl);
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', 'upload-ajax.php', true);
+
+  xhr.upload.onprogress = (event) => {
+    if (event.lengthComputable) {
+      const percent = Math.round((event.loaded / event.total) * 100);
+      progressBar.value = percent;
+    }
+  };
+
+  xhr.onload = () => {
+    pendingUploads--;
+
+    if (xhr.status === 200) {
+      try {
+        const result = JSON.parse(xhr.responseText);
+
+        if (result.success) {
+          successfulUploads++;
+          progressBar.value = 100;
+          statusEl.classList.add('success');
+          progressContainer.remove();
+          statusEl.textContent = `${file.name} uploaded successfully`;
+        } else {
+          showError(statusEl, file, result.error);
+        }
+      } catch {
+        showError(statusEl, file, 'Invalid server response');
+      }
+    } else {
+      showError(statusEl, file, 'Server error');
+    }
+
+    maybeResetFileInput();
+  };
+
+  xhr.onerror = () => {
+    pendingUploads--;
+    showError(statusEl, file, 'Network error');
+    maybeResetFileInput();
+  };
+
+  xhr.send(formData);
+}
+
+function showError(statusEl, file, message) {
+  statusEl.classList.add('error');
+  statusEl.textContent = `${file.name} failed: ${message}`;
+
+  const retryBtn = document.createElement('button');
+  retryBtn.textContent = 'Retry';
+  retryBtn.className = 'retry';
+  retryBtn.onclick = () => {
+    statusEl.remove();
+    uploadFile(file);
+  };
+
+  statusEl.appendChild(retryBtn);
+}
+</script>
+
 </body>
 </html>
 
